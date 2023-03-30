@@ -1,19 +1,36 @@
-import pandas as pd
+""" Utils library module providing utilities to retrieve weather information for a given location."""
 import datetime
+import pandas as pd
 
 
 def find_city(name: str) -> tuple:
-    df = pd.read_parquet('mylib/cities.parquet')
-    info = df[df['city'].str.lower() == name.lower()].sort_values(by='population', ascending=False).iloc[0].to_dict()
+    """
+    Return the latitude and longitude from a given city
+    :param name: city name
+    :return: lat, long (tuple)
+    """
+    cities_df = pd.read_parquet('mylib/cities.parquet')
+    info = cities_df[
+        cities_df['city'].str.lower() == name.lower()].sort_values(by='population', ascending=False).iloc[0].to_dict()
+
     return round(info.get('lat'), 3), round(info.get('lng'), 3)
 
 
 def convert_kelvin_to_celsius(k: float) -> float:
+    """
+    Method to convert kelvin to celsius
+    :param k: kelvin
+    :return: celsius
+    """
     return k - 273
 
 
 def parse_info(wor: dict) -> dict:
-
+    """
+    Method to parse information retrived by the API
+    :param wor: dictionary with weather information from the API
+    :return: formatted weather information
+    """
     timezone = wor.get('timezone')
     date_time = wor.get('current').get('dt')
     current_date_time_str = datetime.datetime.fromtimestamp(date_time).strftime('%Y-%m-%dT%H:%M:%S')
