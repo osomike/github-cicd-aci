@@ -42,7 +42,7 @@ jobs:
           pip install -r requirements.txt
       - name: Run pytest
         run: |
-          coverage run --source=app/modules/ -m pytest -v tests && coverage report -m
+          coverage run --source=app/mylib/ -m pytest -v tests && coverage report -m
       - name: Run pylinting
         run: |
           pylint app/
