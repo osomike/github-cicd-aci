@@ -6,7 +6,7 @@ from mylib.utils import parse_info
 
 def main():
     # Enter your API key here
-    api_key = os.environ('API_KEY')
+    api_key = os.environ.get('API_KEY')
 
     # Give city name
     city_name = "amsterdam"
