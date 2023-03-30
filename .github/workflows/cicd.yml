@@ -22,7 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: dev
-      url: https://github.com
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -55,7 +54,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: dev
-      url: https://github.com
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -99,7 +97,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: dev
-      url: https://github.com
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -131,7 +128,6 @@ jobs:
         run: |
           echo "MINOR_VERSION_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "MAJOR_VERSION_TAG=$(cat version)" >> $GITHUB_ENV
-          echo "APP_NAME=app-test" >> $GITHUB_ENV
           echo "BRANCH_NAME=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
       # Generate tag (must be done on a separate step, otherwise it fails)
       - name: Generate tag
@@ -139,7 +135,7 @@ jobs:
           echo "VERSION_TAG=${{env.MAJOR_VERSION_TAG}}.${{env.MINOR_VERSION_TAG}}" >> $GITHUB_ENV
       - name: Use tag
         run: |
-          echo "Current version of app ${{env.APP_NAME}} is: ${{env.VERSION_TAG}}"
+          echo "Current version of app ${{vars.APP_NAME}} is: ${{env.VERSION_TAG}}"
       # Login to Azure
       # https://learn.microsoft.com/en-us/azure/container-instances/container-instances-github-action
       - name: Login via Azure CLI
@@ -151,12 +147,12 @@ jobs:
       - name: Docker login
         uses: azure/docker-login@v1
         with:
-          login-server: ${{ env.REGISTRY_LOGIN_SERVER }}
+          login-server: ${{ vars.CONTAINER_REGISTRY_SERVER }}
           username: ${{ env.SERVICE_PRINCIPAL_CLIENTID }}
           password: ${{ env.SERVICE_PRINCIPAL_SECRET }}
 
       # Build and push docker image
       - name: Build and push docker image
         run: |
-          docker build . -t ${{ env.REGISTRY_LOGIN_SERVER }}/${{env.APP_NAME}}:${{env.APP_NAME}}_v${{env.VERSION_TAG}}
-          docker push ${{ env.REGISTRY_LOGIN_SERVER }}/${{env.APP_NAME}}:${{env.APP_NAME}}_v${{env.VERSION_TAG}}
+          docker build --build-arg API_KEY=${{ secrets.API_KEY }} . -t ${{ vars.CONTAINER_REGISTRY_SERVER }}/${{vars.APP_NAME}}:${{vars.APP_NAME}}_v${{env.VERSION_TAG}}
+          docker push ${{ vars.CONTAINER_REGISTRY_SERVER }}/${{vars.APP_NAME}}:${{vars.APP_NAME}}_v${{env.VERSION_TAG}}
