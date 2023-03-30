@@ -1,0 +1,162 @@
+# Workflow to get for conteinarazing the python application
+name: cicd-for-app
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "master" branch
+  push:
+    branches: [ "develop", "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  ################################################# Job called "test-and-linting"
+  test-and-linting:
+
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+      url: https://github.com
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Check out source code
+        uses: actions/checkout@v3
+
+      # Set up python
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r app/requirements.txt
+      - name: Run pytest
+        run: |
+          coverage run --source=app/modules/ -m pytest -v tests && coverage report -m
+      - name: Run pylinting
+        run: |
+          pylint app/
+  ################################################# Job called "build"
+  security-scan:
+
+    # The type of runner that the job will run on
+    needs: test-and-linting
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+      url: https://github.com
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Check out source code
+        uses: actions/checkout@v3
+      # Set's up python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      # Install dependancies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r app/requirements.txt
+          # Set the `CODEQL-PYTHON` environment variable to the Python executable
+          # that includes the dependencies
+          echo "CODEQL_PYTHON=$(which python)" >> $GITHUB_ENV
+      # Initialize CodeQL
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: python
+          # Override the default behavior so that the action doesn't attempt
+          # to auto-install Python dependencies
+          setup-python-dependencies: false
+      # Perform CodeQL Analyzis
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          # Optional. Specify a category to distinguish between multiple analyses
+          # for the same tool and ref. If you don't use `category` in your workflow,
+          # GitHub will generate a default category name for you
+          category: "scan-python-code"
+  ################################################# Job called "build"
+  build:
+
+    # The type of runner that the job will run on
+    needs: security-scan
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+      url: https://github.com
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Check out source code
+        uses: actions/checkout@v3
+
+      # Parse AZURE_CREDENTIALS to get client ID and secret for service principal. And prevent them
+      # to be shown on the console logs using ::add-mask::
+      - name: Get environmental variables
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+        run: |
+          SERVICE_PRINCIPAL_CLIENTID="$(echo ${AZURE_CREDENTIALS} | jq -e -r 'select(.clientId != null) | .clientId')"
+          SERVICE_PRINCIPAL_SECRET="$(echo ${AZURE_CREDENTIALS} | jq -e -r 'select(.clientSecret != null) | .clientSecret')"
+          echo "Add masking to secrets to avoid them being printed in the logs"
+          echo "::add-mask::${SERVICE_PRINCIPAL_CLIENTID}"
+          echo "::add-mask::${SERVICE_PRINCIPAL_SECRET}"
+          echo "Create ENV variables"
+          echo "SERVICE_PRINCIPAL_CLIENTID=$SERVICE_PRINCIPAL_CLIENTID" >> $GITHUB_ENV
+          echo "SERVICE_PRINCIPAL_SECRET=$SERVICE_PRINCIPAL_SECRET" >> $GITHUB_ENV
+          echo "REGISTRY_LOGIN_SERVER=githubtst11ss55acr.azurecr.io" >> $GITHUB_ENV
+      - name: Print masked credentials
+        run: |
+          echo $SERVICE_PRINCIPAL_CLIENTID
+          echo $SERVICE_PRINCIPAL_SECRET
+      # Generate major, minor tag
+      - name: Get major and minor versions
+        run: |
+          echo "MINOR_VERSION_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "MAJOR_VERSION_TAG=$(cat version)" >> $GITHUB_ENV
+          echo "APP_NAME=app-test" >> $GITHUB_ENV
+          echo "BRANCH_NAME=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
+      # Generate tag (must be done on a separate step, otherwise it fails)
+      - name: Generate tag
+        run: |
+          echo "VERSION_TAG=${{env.MAJOR_VERSION_TAG}}.${{env.MINOR_VERSION_TAG}}" >> $GITHUB_ENV
+      - name: Use tag
+        run: |
+          echo "Current version of app ${{env.APP_NAME}} is: ${{env.VERSION_TAG}}"
+      # Login to Azure
+      # https://learn.microsoft.com/en-us/azure/container-instances/container-instances-github-action
+      - name: Login via Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Docker Login
+      - name: Docker login
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.REGISTRY_LOGIN_SERVER }}
+          username: ${{ env.SERVICE_PRINCIPAL_CLIENTID }}
+          password: ${{ env.SERVICE_PRINCIPAL_SECRET }}
+
+      # Build and push docker image
+      - name: Build and push docker image
+        run: |
+          docker build . -t ${{ env.REGISTRY_LOGIN_SERVER }}/${{env.APP_NAME}}:${{env.APP_NAME}}_v${{env.VERSION_TAG}}
+          docker push ${{ env.REGISTRY_LOGIN_SERVER }}/${{env.APP_NAME}}:${{env.APP_NAME}}_v${{env.VERSION_TAG}}
