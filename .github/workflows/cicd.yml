@@ -155,5 +155,11 @@ jobs:
       # Build and push docker image
       - name: Build and push docker image
         run: |
-          docker build --build-arg API_KEY=${{ secrets.API_KEY }} . -t ${{ vars.CONTAINER_REGISTRY_SERVER }}/${{vars.APP_NAME}}:${{vars.APP_NAME}}_v${{env.VERSION_TAG}}
+          docker build --build-arg API_KEY=${{ secrets.API_KEY }} \
+          build --build-arg DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+          build --build-arg DB_USER=${{ secrets.DB_USER }} \
+          build --build-arg DB_HOST=${{ vars.DB_HOST }} \
+          build --build-arg DB_NAME=${{ vars.DB_NAME }} \
+          build --build-arg DB_PORT=${{ vars.DB_PORT }} \
+          . -t ${{ vars.CONTAINER_REGISTRY_SERVER }}/${{vars.APP_NAME}}:${{vars.APP_NAME}}_v${{env.VERSION_TAG}}
           docker push ${{ vars.CONTAINER_REGISTRY_SERVER }}/${{vars.APP_NAME}}:${{vars.APP_NAME}}_v${{env.VERSION_TAG}}
