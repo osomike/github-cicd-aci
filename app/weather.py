@@ -33,8 +33,8 @@ def main():
     if response.status_code == 200:
         info = parse_info(response.json())
 
-        df = pd.DataFrame.from_dict([info])
-        df.to_sql('weather_data', con=connector, schema='bronze', if_exists='append', index=False)
+        info_df = pd.DataFrame.from_dict([info])
+        info_df.to_sql('weather_data', con=connector, schema='bronze', if_exists='append', index=False)
         print(info)
 
     else:
