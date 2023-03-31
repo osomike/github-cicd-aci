@@ -33,3 +33,14 @@ variable "location" {
   default     = "West Europe"
   description = "Location where the resources will be deployed"
 }
+
+variable "user_psql" {
+  type        = string
+  default     = "psqladmin"
+  description = "Postgresql"
+}
+
+variable "pwd_psql" {
+  type        = string
+  description = "Postgresql"
+}

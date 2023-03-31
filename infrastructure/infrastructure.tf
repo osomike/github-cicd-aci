@@ -37,11 +37,6 @@ provider "azurerm" {
 # For naming conventions please refer to:
 # https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules
 
-###########################################################
-##############  Create Service Principal ##################
-###########################################################
-#https://stackoverflow.com/questions/53991906/how-can-i-use-terraform-to-create-a-service-principal-and-use-that-principal-in
-
 data "azuread_client_config" "current" {}
 
 
@@ -122,3 +117,22 @@ resource "azurerm_container_registry" "acr" {
   sku                 = "Standard"
   admin_enabled       = true
 }
+
+
+###########################################################
+############  Flexible Postgresql Database ################
+###########################################################
+
+resource "azurerm_postgresql_flexible_server" "example" {
+  name                   = "${var.default_prefix}-${var.environment}-psql"
+  resource_group_name    = azurerm_resource_group.rg.name
+  location               = azurerm_resource_group.rg.location
+  version                = "14"
+  administrator_login    = var.user_psql
+  administrator_password = var.pwd_psql
+
+  storage_mb = 32768
+
+  sku_name = "B_Standard_B1ms"
+}
+
