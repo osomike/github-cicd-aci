@@ -1,6 +1,7 @@
 """ Utils library module providing utilities to retrieve weather information for a given location."""
 import datetime
 import pandas as pd
+from app.mylib.cities import CITIES_INFO
 
 
 def find_city(name: str) -> tuple:
@@ -9,9 +10,9 @@ def find_city(name: str) -> tuple:
     :param name: city name
     :return: lat, long (tuple)
     """
-    cities_df = pd.read_parquet('mylib/cities.parquet')
+    cities_df = pd.DataFrame.from_dict(CITIES_INFO)
     info = cities_df[
-        cities_df['city'].str.lower() == name.lower()].sort_values(by='population', ascending=False).iloc[0].to_dict()
+        cities_df['city'].str.lower() == name.lower()].iloc[0].to_dict()
 
     return round(info.get('lat'), 3), round(info.get('lng'), 3)
 
