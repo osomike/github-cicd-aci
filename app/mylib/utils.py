@@ -42,6 +42,7 @@ def parse_info(wor: dict) -> dict:
     current_weather_descriotion = wor.get('current').get('weather')[0].get('description')
 
     return {
+        'city': timezone.split('/')[-1].lower(),
         'timezone': timezone,
         'date_time': current_date_time_str,
         'temperature': current_temperature,
