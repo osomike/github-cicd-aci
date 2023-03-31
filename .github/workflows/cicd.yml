@@ -47,48 +47,49 @@ jobs:
         run: |
           pylint app/
   ################################################# Job called "build"
-  security-scan:
-
-    # The type of runner that the job will run on
-    needs: test-and-linting
-    runs-on: ubuntu-latest
-    environment:
-      name: dev
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Check out source code
-        uses: actions/checkout@v3
-      # Set's up python environment
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
-      # Install dependancies
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements.txt
-          # Set the `CODEQL-PYTHON` environment variable to the Python executable
-          # that includes the dependencies
-          echo "CODEQL_PYTHON=$(which python)" >> $GITHUB_ENV
-      # Initialize CodeQL
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: python
-          # Override the default behavior so that the action doesn't attempt
-          # to auto-install Python dependencies
-          setup-python-dependencies: false
-      # Perform CodeQL Analyzis
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
-        with:
-          # Optional. Specify a category to distinguish between multiple analyses
-          # for the same tool and ref. If you don't use `category` in your workflow,
-          # GitHub will generate a default category name for you
-          category: "scan-python-code"
+#  security-scan:
+#
+#    # The type of runner that the job will run on
+#    needs: test-and-linting
+#    runs-on: ubuntu-latest
+#    environment:
+#      name: dev
+#
+#    # Steps represent a sequence of tasks that will be executed as part of the job
+#    # make sur that workflows has write permissions on this repository.
+#    steps:
+#      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+#      - name: Check out source code
+#        uses: actions/checkout@v3
+#      # Set's up python environment
+#      - name: Set up Python
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: '3.8'
+#      # Install dependancies
+#      - name: Install dependencies
+#        run: |
+#          python -m pip install --upgrade pip setuptools wheel
+#          pip install -r requirements.txt
+#          # Set the `CODEQL-PYTHON` environment variable to the Python executable
+#          # that includes the dependencies
+#          echo "CODEQL_PYTHON=$(which python)" >> $GITHUB_ENV
+#      # Initialize CodeQL
+#      - name: Initialize CodeQL
+#        uses: github/codeql-action/init@v2
+#        with:
+#          languages: python
+#          # Override the default behavior so that the action doesn't attempt
+#          # to auto-install Python dependencies
+#          setup-python-dependencies: false
+#      # Perform CodeQL Analyzis
+#      - name: Perform CodeQL Analysis
+#        uses: github/codeql-action/analyze@v2
+#        with:
+#          # Optional. Specify a category to distinguish between multiple analyses
+#          # for the same tool and ref. If you don't use `category` in your workflow,
+#          # GitHub will generate a default category name for you
+#          category: "scan-python-code"
   ################################################# Job called "build"
   build:
 
