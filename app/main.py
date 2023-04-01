@@ -13,8 +13,8 @@ def main():
     """
 
     # Give city name
-    city_name = "Cochabamba"
-    country_name = 'Bolivia'
+    city_name = "Berlin"
+    country_name = 'Germany'
 
     logger.info(f'Retrieving latitude and longitude for country: \'{country_name}\' and city: \'{city_name}\'')
 
