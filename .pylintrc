@@ -2,3 +2,5 @@
 init-hook='import sys; sys.path.append("."); sys.path.append("./app")'
 [FORMAT]
 max-line-length=120
+[pylint.messages_control]
+disable=W1203,W0718
