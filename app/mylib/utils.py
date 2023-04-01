@@ -1,20 +1,5 @@
 """ Utils library module providing utilities to retrieve weather information for a given location."""
 import datetime
-import pandas as pd
-from app.mylib.cities import CITIES_INFO
-
-
-def find_city(name: str) -> tuple:
-    """
-    Return the latitude and longitude from a given city
-    :param name: city name
-    :return: lat, long (tuple)
-    """
-    cities_df = pd.DataFrame.from_dict(CITIES_INFO)
-    info = cities_df[
-        cities_df['city'].str.lower() == name.lower()].iloc[0].to_dict()
-
-    return round(info.get('lat'), 3), round(info.get('lng'), 3)
 
 
 def convert_kelvin_to_celsius(k: float) -> float:
@@ -30,6 +15,8 @@ def parse_info(wor: dict) -> dict:
     """
     Method to parse information retrived by the API
     :param wor: dictionary with weather information from the API
+    :param city: city
+    :param country: Country
     :return: formatted weather information
     """
     timezone = wor.get('timezone')
@@ -42,7 +29,6 @@ def parse_info(wor: dict) -> dict:
     current_weather_descriotion = wor.get('current').get('weather')[0].get('description')
 
     return {
-        'city': timezone.split('/')[-1].lower(),
         'timezone': timezone,
         'date_time': current_date_time_str,
         'temperature': current_temperature,
@@ -51,3 +37,14 @@ def parse_info(wor: dict) -> dict:
         'wind_speed': current_wind_speed,
         'weather_description': current_weather_descriotion
     }
+
+
+def add_additional_info(base_dict: dict, additional_info: dict) -> dict:
+    """
+    Add additional info to dictionary
+    :param base_dict: base dictionary
+    :param additional_info: additional info
+    :return:
+    """
+    base_dict.update(additional_info)
+    return base_dict
