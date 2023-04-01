@@ -29,6 +29,15 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v3
 
+      # set env variables
+      - name: Set environemntal variables
+        run: |
+          set DB_HOST=${{ vars.DB_HOST }}
+          set DB_NAME=${{ vars.DB_NAME }}
+          set DB_USER=${{ secrets.DB_USER }}
+          set DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          set API_KEY=${{ secrets.API_KEY }}
+
       # Set up python
       - name: Set up Python 3.8
         uses: actions/setup-python@v4
