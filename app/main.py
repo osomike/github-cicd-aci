@@ -1,9 +1,9 @@
 """ Main module providing weather information for a given location."""
 import argparse
-from mylib.postgresqldb import store_weather_info
-from mylib.cities import get_lat_long
-from mylib.weather import get_weather
-from mylib.utils import add_additional_info
+from app.mylib.postgresqldb import store_weather_info
+from app.mylib.cities import get_lat_long
+from app.mylib.weather import get_weather
+from app.mylib.utils import add_additional_info
 from app.mylib.mylogger import logger
 
 
