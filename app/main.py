@@ -34,8 +34,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
         description='This is a program intended to retrieve weather data from an API using a country and city target')
-    parser.add_argument('--country', type=str, help='name of the country', default='Amsterdam')
-    parser.add_argument('--city', type=str, help='name of the city', default='Netherlands')
+    parser.add_argument('--country', type=str, help='name of the country', default='Netherlands')
+    parser.add_argument('--city', type=str, help='name of the city', default='Amsterdam')
 
     args = parser.parse_args()
 
