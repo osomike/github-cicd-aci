@@ -1,4 +1,5 @@
 """ Main module providing weather information for a given location."""
+import os
 import argparse
 from app.mylib.postgresqldb import store_weather_info
 from app.mylib.cities import get_lat_long
@@ -14,6 +15,11 @@ def main(country, city):
     :param city: city name
     :return: None
     """
+
+    if not country:
+        country = os.environ.get('COUNTRY_TARGET', 'Netherlands')
+    if not city:
+        city = os.environ.get('CITY_TARGET', 'Amsterdam')
 
     logger.info(f'Retrieving latitude and longitude for country: \'{country}\' and city: \'{city}\'')
 
@@ -34,8 +40,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
         description='This is a program intended to retrieve weather data from an API using a country and city target')
-    parser.add_argument('--country', type=str, help='name of the country', default='Netherlands')
-    parser.add_argument('--city', type=str, help='name of the city', default='Amsterdam')
+    parser.add_argument('--country', type=str, help='name of the country. Default is Netherlands')
+    parser.add_argument('--city', type=str, help='name of the city. Default is Amsterdam')
 
     args = parser.parse_args()
 
